@@ -78,20 +78,17 @@ void print_settings()
 {
 	static const char *szConditon[] = {
 		" (for all)",
-		" (only Terrorists)",
-		" (only Counter-Terrorists)",
+		" (only BLUE team)",
+		" (only RED team)",
 		" (only teammates)"
 	};
 
 	printf("\n\nusage: semiclip_option\n\n [command]	[value]   [description]\n\n");
 	printf(" semiclip	%d	- enable/disable semiclip\n",semiclipData.semiclip);
 	printf(" team		%d	- condition for teams %s\n",semiclipData.team,szConditon[semiclipData.team]);
-	printf(" time		%0.0f	- how many time in seconds semiclip will work from the beginning of the round\n",semiclipData.time);
 	printf(" patch		%d	- fix jamming on a mobile platform\n",semiclipData.patch);
 	printf(" crouch		%d	- allows jump to crouching players when semiclip works\n",semiclipData.crouch);
 	printf(" effects	%d	- effect of transparency of the player. Depends from distance between players\n",semiclipData.effects);
-	printf(" flashfix	%d	- fix flashing throw transparent players\n",semiclipData.flashfix);
-	printf(" noteamflash	%d	- teammates blocking flashing\n",semiclipData.noteamflash);
 	printf(" distance	%0.0f	- at what distance player can have transparency and semiclip\n",semiclipData.distance);
 	printf(" transparency	%d	- transparency of the player\n\n",semiclipData.transparency);
 }
