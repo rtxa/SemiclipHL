@@ -135,7 +135,7 @@ static int parse_config(const char *path,TypeRead iType)
 
 	char szDir[16];
 	GET_GAME_DIR(szDir);
-	if(strcmp(szDir,"cstrike") != 0)
+	if(strcmp(szDir,"valve") != 0)
 	{
 		semiclipData.team = 0;
 		semiclipData.time = 0.0f;

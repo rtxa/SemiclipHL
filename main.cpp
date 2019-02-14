@@ -7,6 +7,7 @@ static edict_t *startEdict;
 
 bool g_bNotActive = false;
 char **global_host_client;
+const char *g_szTeamList;
 
 patch_t patchData[] =
 {
@@ -37,6 +38,39 @@ int OnMetaAttach()
 	}
 	return 0;
 }
+
+// m_szTeamName 16
+// m_szTeamList 512
+int GetTeamId(edict_t *pEntity)
+{
+	char *infobuffer = (*g_engfuncs.pfnGetInfoKeyBuffer)(pEntity);
+
+	char model[16];
+
+	strcpy(model, (g_engfuncs.pfnInfoKeyValue(infobuffer, "model")));
+
+	const char *pos = strstr(g_szTeamList, model);
+	char *sofar = (char*)g_szTeamList;
+
+	int team = 1;
+
+	if (sofar == NULL)
+		team = -1;
+	else
+	{
+		// count ";"s
+		while (sofar < pos)
+		{
+			if (*sofar == ';')
+				team++;
+
+			sofar = sofar + 1;
+		}
+	}
+
+	return team;
+}
+
 static uint16_t FixedUnsigned16(float fValue, float fScale)
 {
 	int output = (int)(fValue * fScale);
@@ -112,7 +146,7 @@ void RadiusFlash_Handler(Vector vecStart, entvars_t *pevInflictor, entvars_t *pe
 			|| pEdict->v.deadflag != DEAD_NO
 			/*|| pEdict->v.flags & FL_FAKECLIENT*/
 			|| (bInWater ? pEdict->v.waterlevel == 0 : pEdict->v.waterlevel == 3)
-			|| (bIsValid && pEdict != pAttacker && NUM_FOR_TEAM_ID(pEdict) == NUM_FOR_TEAM_ID(pAttacker))
+			|| (bIsValid && pEdict != pAttacker && GetTeamId(pEdict) == GetTeamId(pAttacker))
 			)
 		{
 			continue;
@@ -346,8 +380,11 @@ void *Q_memcpy_Handler(void *_Dst, entity_state_t *_Src, uint32_t _Size)
 static bool allowDontSolid(playermove_t *pmove, edict_t *pHost, int host, int j)
 {
 	int ent;
-	int entTeamId;
+
 	int hostTeamId;
+	int entTeamId;
+	int isHostSpec;
+	int isEntSpec;
 
 	float fDiff;
 
@@ -370,21 +407,25 @@ static bool allowDontSolid(playermove_t *pmove, edict_t *pHost, int host, int j)
 
 	pHost = EDICT_NUM(host);
 	pEntity = EDICT_NUM(ent);
+	
 
 	pevHost = &(pHost->v);
 	pevEnt = &(pEntity->v);
 
+	isHostSpec = (pevHost->iuser1 || pevHost->iuser2);
+	isEntSpec = (pevEnt->iuser1 || pevEnt->iuser2);
+
 	hostOrigin = pevHost->origin;
 	entOrigin = pevEnt->origin;
 
-	hostTeamId = NUM_FOR_TEAM_ID(pHost);
-	entTeamId = NUM_FOR_TEAM_ID(pEntity);
+	hostTeamId = GetTeamId(pHost);
+	entTeamId = GetTeamId(pEntity);
 
 	hostSemiclip->diff[ent] = GET_DISTANCE(hostOrigin, entOrigin);
-	hostSemiclip->solid[ent] = (hostTeamId == 3 ||
-					 hostTeamId == 3 ||
+	hostSemiclip->solid[ent] = (isHostSpec ||
+					 isHostSpec ||
 					 (semiclipData.effects || hostSemiclip->diff[ent] < semiclipData.distance) &&
-					 (semiclipData.team == 0 ? 1 : semiclipData.team == 3 ? hostTeamId == entTeamId : (hostTeamId == semiclipData.team && entTeamId == semiclipData.team)) &&
+					 (semiclipData.team == 0 ? 1 : isEntSpec ? hostTeamId == entTeamId : (hostTeamId == semiclipData.team && entTeamId == semiclipData.team)) &&
 					 !otherSemiclip->dont);
 
 	if (semiclipData.crouch && hostSemiclip->solid[ent])
@@ -465,9 +506,9 @@ void PM_Move(playermove_t *pmove, int server)
 		entvars_t *e;
 		edict_t *pEntity;
 		Vector hostOrigin;
-
+		
 		hostOrigin = pHostEdict->v.origin;
-		hostTeamId = NUM_FOR_TEAM_ID(pHostEdict);
+		hostTeamId = GetTeamId(pHostEdict);
 
 		for (pEntity = startEdict, j = 1; pEntity <= maxEdict; pEntity++, j++)
 		{
@@ -479,7 +520,7 @@ void PM_Move(playermove_t *pmove, int server)
 			}
 
 			if (!bCollide && j != hostId
-				&& ((semiclipData.team == 0) ? 1 : (semiclipData.team == 3) ? (hostTeamId == NUM_FOR_TEAM_ID(pEntity)) : (hostTeamId == semiclipData.team && NUM_FOR_TEAM_ID(pEntity) == semiclipData.team))
+				&& ((semiclipData.team == 0) ? 1 : (semiclipData.team == 3) ? (hostTeamId == GetTeamId(pEntity)) : (hostTeamId == semiclipData.team && GetTeamId(pEntity) == semiclipData.team))
 				&& GET_COLLIDE(hostOrigin, e->origin))
 				bCollide = true;
 
@@ -513,6 +554,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	maxEdict = pEdictList + clientMax;
 
 	memset(g_pSemiclip, 0, sizeof(g_pSemiclip));
+	g_szTeamList = CVAR_GET_STRING("mp_teamlist");
 
 	RETURN_META(MRES_IGNORED);
 }

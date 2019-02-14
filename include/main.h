@@ -21,11 +21,13 @@
 #define GET_COLLIDE(a,b)		(abs(a.z - b.z) < 96 && (a - b).Length2D() < 96)
 
 #define NUM_FOR_TEAM_ID(e)		(*((int *)e->pvPrivateData + OFFSET_TEAM_ID))
+#define GET_TEAMNAME(e)			(*((char *)e->pvPrivateData + OFFSET_TEAMNAME))
 
 #define NUM_FOR_EDICT(e)		((int)(e - nullEdict))
 #define EDICT_NUM(e)			((edict_t *)(nullEdict + e))
 
 #ifdef _WIN32
+	#define OFFSET_TEAMNAME 383
 	#define OFFSET_TEAM_ID 114
 	#define OFFSET_EDICT_CL 19356
 
@@ -36,6 +38,7 @@
 	#define OFFSET_FLASH_ALPHA 518
 
 #else
+	#define OFFSET_TEAMNAME 388
 	#define OFFSET_TEAM_ID 119
 	#define OFFSET_EDICT_CL 19076
 
