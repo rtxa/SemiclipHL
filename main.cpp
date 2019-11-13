@@ -425,7 +425,7 @@ static bool allowDontSolid(playermove_t *pmove, edict_t *pHost, int host, int j)
 	hostSemiclip->solid[ent] = (isHostSpec ||
 					 isHostSpec ||
 					 (semiclipData.effects || hostSemiclip->diff[ent] < semiclipData.distance) &&
-					 (semiclipData.team == 0 ? 1 : isEntSpec ? hostTeamId == entTeamId : (hostTeamId == semiclipData.team && entTeamId == semiclipData.team)) &&
+					 (semiclipData.team == 0 ? 1 : isEntSpec ? 0 : (semiclipData.team == 3) ? (hostTeamId == entTeamId) : (hostTeamId == semiclipData.team && entTeamId == semiclipData.team)) &&
 					 !otherSemiclip->dont);
 
 	if (semiclipData.crouch && hostSemiclip->solid[ent])
@@ -520,7 +520,7 @@ void PM_Move(playermove_t *pmove, int server)
 			}
 
 			if (!bCollide && j != hostId
-				&& ((semiclipData.team == 0) ? 1 : (semiclipData.team == 3) ? (hostTeamId == GetTeamId(pEntity)) : (hostTeamId == semiclipData.team && GetTeamId(pEntity) == semiclipData.team))
+				&& ((semiclipData.team == 0) ? 1 : ((semiclipData.team == 3) ? (hostTeamId == GetTeamId(pEntity)) : (hostTeamId == semiclipData.team && GetTeamId(pEntity) == semiclipData.team)))
 				&& GET_COLLIDE(hostOrigin, e->origin))
 				bCollide = true;
 
