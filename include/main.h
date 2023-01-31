@@ -49,6 +49,19 @@
 	#define OFFSET_FLASH_ALPHA 523
 #endif
 
+enum TeamId {
+	BLUE_TEAM = 1,
+	RED_TEAM = 2,
+};
+
+enum SemiclipTeam
+{
+	ALL = 0,
+	ONLY_BLUE = 1,
+	ONLY_RED = 2,
+	ONLY_TEAMMATES = 3
+};
+
 typedef enum
 {
 	READ_IN_GAME = 0,
@@ -120,6 +133,10 @@ void ServerActivate_Post(edict_t *pEdictList,int edictCount,int clientMax);
 void *Q_memcpy_Handler(void *_Dst,entity_state_t *_Src,uint32_t _Size);
 
 void RadiusFlash_Handler(Vector vecSrc,entvars_t *pevInflictor,entvars_t *pevAttacker,float flDamage);
+
+bool IsUserSpectator(entvars_t& ent);
+
+bool Semiclip_IsTeamAllowed(int playerTeamId, int otherTeamId);
 
 extern bool g_bNotActive;
 

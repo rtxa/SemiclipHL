@@ -377,61 +377,64 @@ void *Q_memcpy_Handler(void *_Dst, entity_state_t *_Src, uint32_t _Size)
 
 	return memcpy(_Dst, _Src, _Size);
 }
+
+bool IsUserSpectator(entvars_t& ent) {
+	return ent.iuser1 || ent.iuser2;
+}
+
+bool Semiclip_IsTeamAllowed(int playerTeamId, int otherTeamId)
+{
+	switch (semiclipData.team)
+	{
+		case SemiclipTeam::ALL: return true;
+		case SemiclipTeam::ONLY_BLUE: return playerTeamId == TeamId::BLUE_TEAM && otherTeamId == TeamId::BLUE_TEAM;
+		case SemiclipTeam::ONLY_RED: return playerTeamId == TeamId::RED_TEAM && otherTeamId == TeamId::RED_TEAM;
+		case SemiclipTeam::ONLY_TEAMMATES: return playerTeamId == otherTeamId;
+	}
+
+	return false;
+}
+
 static bool allowDontSolid(playermove_t *pmove, edict_t *pHost, int host, int j)
 {
-	int ent;
+	int ent = pmove->physents[j].player;
 
-	int hostTeamId;
-	int entTeamId;
-	int isHostSpec;
-	int isEntSpec;
-
-	float fDiff;
-
-	semiclip_t *hostSemiclip, *otherSemiclip;
-	edict_t *pEntity;
-	entvars_t *pevHost, *pevEnt;
-
-	Vector entOrigin;
-	Vector hostOrigin;
-
-	ent = pmove->physents[j].player;
-
-	hostSemiclip = &(g_pSemiclip[host]);
-	otherSemiclip = &(g_pSemiclip[ent]);
+	semiclip_t* hostSemiclip = &(g_pSemiclip[host]);
+	semiclip_t* otherSemiclip = &(g_pSemiclip[ent]);
 
 	if (hostSemiclip->dont)
 	{
 		return hostSemiclip->solid[ent] = false;
 	}
 
+	edict_t *pEntity;
+
 	pHost = EDICT_NUM(host);
 	pEntity = EDICT_NUM(ent);
 	
+	entvars_t* pevHost = &(pHost->v);
+	entvars_t* pevEnt = &(pEntity->v);
 
-	pevHost = &(pHost->v);
-	pevEnt = &(pEntity->v);
+	Vector hostOrigin = pevHost->origin;
+	Vector entOrigin = pevEnt->origin;
 
-	isHostSpec = (pevHost->iuser1 || pevHost->iuser2);
-	isEntSpec = (pevEnt->iuser1 || pevEnt->iuser2);
-
-	hostOrigin = pevHost->origin;
-	entOrigin = pevEnt->origin;
-
-	hostTeamId = GetTeamId(pHost);
-	entTeamId = GetTeamId(pEntity);
+	int hostTeamId = GetTeamId(pHost);
+	int entTeamId = GetTeamId(pEntity);
 
 	hostSemiclip->diff[ent] = GET_DISTANCE(hostOrigin, entOrigin);
-	hostSemiclip->solid[ent] = (isHostSpec ||
-					 isHostSpec ||
-					 (semiclipData.effects || hostSemiclip->diff[ent] < semiclipData.distance) &&
-					 (semiclipData.team == 0 ? 1 : isEntSpec ? 0 : (semiclipData.team == 3) ? (hostTeamId == entTeamId) : (hostTeamId == semiclipData.team && entTeamId == semiclipData.team)) &&
-					 !otherSemiclip->dont);
+
+	bool isHostSpec = IsUserSpectator(*pevHost);
+	bool isEntSpec = IsUserSpectator(*pevEnt);
+	bool isDistanceAllowed = hostSemiclip->diff[ent] < semiclipData.distance;
+
+	hostSemiclip->solid[ent] = isHostSpec || (semiclipData.effects || isDistanceAllowed) && 
+		!isEntSpec &&
+		Semiclip_IsTeamAllowed(hostTeamId, entTeamId) &&
+		!otherSemiclip->dont;
 
 	if (semiclipData.crouch && hostSemiclip->solid[ent])
 	{
-		//fDiff = abs(a->diff[ent]);//abs(hostOrigin.z - entOrigin.z);
-		fDiff = abs(hostOrigin.z - entOrigin.z);
+		float fDiff = abs(hostOrigin.z - entOrigin.z);
 
 		if (fDiff < FLOAT_CROUCH && hostSemiclip->crouch[ent] && otherSemiclip->crouch[host])
 		{
