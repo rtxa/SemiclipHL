@@ -504,18 +504,19 @@ void PM_Move(playermove_t *pmove, int server)
 	{
 		bool bCollide = false;
 		bool needSolid = false;
-		int hostTeamId;
 
 		entvars_t *e;
 		edict_t *pEntity;
-		Vector hostOrigin;
 		
-		hostOrigin = pHostEdict->v.origin;
-		hostTeamId = GetTeamId(pHostEdict);
+		Vector hostOrigin = pHostEdict->v.origin;
+
+		int hostTeamId = GetTeamId(pHostEdict);
+		int entTeamId;
 
 		for (pEntity = startEdict, j = 1; pEntity <= maxEdict; pEntity++, j++)
 		{
 			e = &(pEntity->v);
+			entTeamId = GetTeamId(pEntity);
 
 			if (g_pSemiclip[j].dont || !pEntity->pvPrivateData || e->deadflag != DEAD_NO || e->health <= 0.0)
 			{
@@ -523,7 +524,7 @@ void PM_Move(playermove_t *pmove, int server)
 			}
 
 			if (!bCollide && j != hostId
-				&& ((semiclipData.team == 0) ? 1 : ((semiclipData.team == 3) ? (hostTeamId == GetTeamId(pEntity)) : (hostTeamId == semiclipData.team && GetTeamId(pEntity) == semiclipData.team)))
+				&& Semiclip_IsTeamAllowed(hostTeamId, entTeamId)
 				&& GET_COLLIDE(hostOrigin, e->origin))
 				bCollide = true;
 
