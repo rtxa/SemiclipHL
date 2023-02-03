@@ -423,14 +423,22 @@ static bool allowDontSolid(playermove_t *pmove, edict_t *pHost, int host, int j)
 
 	hostSemiclip->diff[ent] = GET_DISTANCE(hostOrigin, entOrigin);
 
-	bool isHostSpec = IsUserSpectator(*pevHost);
-	bool isEntSpec = IsUserSpectator(*pevEnt);
-	bool isDistanceAllowed = hostSemiclip->diff[ent] < semiclipData.distance;
+	hostSemiclip->solid[ent] = true;
 
-	hostSemiclip->solid[ent] = isHostSpec || (semiclipData.effects || isDistanceAllowed) && 
-		!isEntSpec &&
-		Semiclip_IsTeamAllowed(hostTeamId, entTeamId) &&
-		!otherSemiclip->dont;
+	if (!Semiclip_IsTeamAllowed(hostTeamId, entTeamId))
+	{
+		return hostSemiclip->solid[ent] = false;
+	}
+	
+	if (hostSemiclip->diff[ent] > semiclipData.distance)
+	{
+		return hostSemiclip->solid[ent] = false;
+	}
+	
+	if (otherSemiclip->dont)
+	{
+		return hostSemiclip->solid[ent] = false;
+	}
 
 	if (semiclipData.crouch && hostSemiclip->solid[ent])
 	{
