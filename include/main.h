@@ -14,7 +14,7 @@
 
 #define MIN_AMOUNT			100.0f
 
-#define FLOAT_CROUCH			49.9f
+#define FLOAT_CROUCH		35.9f
 #define MAX_CLIENTS			32
 
 #define GET_DISTANCE(a,b)		((a - b).Length2D())
