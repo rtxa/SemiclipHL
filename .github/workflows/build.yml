@@ -51,7 +51,7 @@ jobs:
       run: |
         cd Release
         mkdir semiclip
-        mv semiclip_mm_i386.so resemiclip/semiclip_mm_i386.so 
+        mv semiclip_mm_i386.so semiclip/semiclip_mm_i386.so 
         cp -a ../dist/. semiclip
 
     - name: Upload artifact
