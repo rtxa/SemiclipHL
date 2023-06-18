@@ -14,12 +14,12 @@
 
 plugin_info_t Plugin_info = {
 	META_INTERFACE_VERSION,
-	"Semiclip",
-	"2.2",
-	"07/08/14",
-	"s1lent",
-	"http://www.aghl.ru/",
-	"Semiclip",
+	"SemiclipHL",
+	"2.2.1",
+	"18/06/23",
+	"s1lent & rtxa",
+	"https://github.com/rtxa/SemiclipHL",
+	"SemiclipHL",
 	PT_ANYTIME,
 	PT_ANYTIME,
 };
