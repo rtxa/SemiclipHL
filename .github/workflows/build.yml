@@ -1,0 +1,61 @@
+name: Build release
+
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.3.1
+      
+      - name: Build Release
+        run: |
+          msbuild msvc\semiclip.sln /p:Configuration=Release
+
+      - name: Copy dist files
+        run: |
+          mkdir Release\semiclip
+          copy msvc\Release\semiclip.dll Release/semiclip
+          xcopy /s dist Release\semiclip
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: semicliphl-windows
+          path: Release/
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install -y gcc-multilib g++-multilib
+        sudo apt-get install -y build-essential
+        sudo apt-get install -y libc6-dev libc6-dev-i386
+
+    - name: Build Release
+      run: make
+
+    - name: Copy dist files
+      run: |
+        cd Release
+        mkdir semiclip
+        mv semiclip_mm_i386.so resemiclip/semiclip_mm_i386.so 
+        cp -a ../dist/. semiclip
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: semicliphl-linux
+        path: Release/
