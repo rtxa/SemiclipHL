@@ -52,6 +52,7 @@ $(BIN_DIR)/%.o: %.cpp
 all:
 	mkdir -p $(BIN_DIR)
 	$(MAKE) $(NAME)
+	rm -rf $(BIN_DIR)/*.o
 
 amd64:
 	$(MAKE) all AMD64=true
